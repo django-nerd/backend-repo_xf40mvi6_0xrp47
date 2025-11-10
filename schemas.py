@@ -52,3 +52,7 @@ class VideoJob(BaseModel):
     outline: List[str] = Field(default_factory=list, description="High-level outline sections")
     script: str = Field("", description="Generated script text")
     status: str = Field("generated", description="Status of the job")
+    audio_url: Optional[str] = Field(None, description="URL to generated voice-over audio")
+    thumbnail_url: Optional[str] = Field(None, description="URL to generated thumbnail image")
+    youtube_url: Optional[str] = Field(None, description="Published YouTube video URL if uploaded")
+    upload_status: Optional[str] = Field(None, description="Upload progress status")

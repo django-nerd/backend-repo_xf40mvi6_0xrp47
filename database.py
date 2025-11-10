@@ -6,10 +6,11 @@ Import and use these functions in your API endpoints for database operations.
 """
 
 from pymongo import MongoClient
+from bson import ObjectId
 from datetime import datetime, timezone
 import os
 from dotenv import load_dotenv
-from typing import Union
+from typing import Union, Optional, Dict, Any
 from pydantic import BaseModel
 
 # Load environment variables from .env file
@@ -43,13 +44,42 @@ def create_document(collection_name: str, data: Union[BaseModel, dict]):
     result = db[collection_name].insert_one(data_dict)
     return str(result.inserted_id)
 
-def get_documents(collection_name: str, filter_dict: dict = None, limit: int = None):
+
+def get_documents(collection_name: str, filter_dict: dict = None, limit: int = None, sort: Optional[list] = None):
     """Get documents from collection"""
     if db is None:
         raise Exception("Database not available. Check DATABASE_URL and DATABASE_NAME environment variables.")
     
     cursor = db[collection_name].find(filter_dict or {})
+    if sort:
+        cursor = cursor.sort(sort)
     if limit:
         cursor = cursor.limit(limit)
     
     return list(cursor)
+
+
+def get_document_by_id(collection_name: str, id_str: str) -> Optional[Dict[str, Any]]:
+    """Fetch a single document by its string id"""
+    if db is None:
+        raise Exception("Database not available. Check DATABASE_URL and DATABASE_NAME environment variables.")
+    try:
+        oid = ObjectId(id_str)
+    except Exception:
+        return None
+    doc = db[collection_name].find_one({"_id": oid})
+    return doc
+
+
+def update_document(collection_name: str, id_str: str, updates: Dict[str, Any]) -> bool:
+    """Update a single document by id with provided fields"""
+    if db is None:
+        raise Exception("Database not available. Check DATABASE_URL and DATABASE_NAME environment variables.")
+    try:
+        oid = ObjectId(id_str)
+    except Exception:
+        return False
+    updates = updates.copy()
+    updates['updated_at'] = datetime.now(timezone.utc)
+    res = db[collection_name].update_one({"_id": oid}, {"$set": updates})
+    return res.modified_count > 0

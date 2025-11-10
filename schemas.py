@@ -12,7 +12,7 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 # Example schemas (replace with your own):
 
@@ -38,11 +38,17 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+# AI YouTube automation job schema
+class VideoJob(BaseModel):
+    """
+    Video automation jobs for YouTube content generation
+    Collection name: "videojob"
+    """
+    niche: str = Field(..., description="Target niche or topic area")
+    title: str = Field(..., description="Selected video title")
+    keywords: List[str] = Field(default_factory=list, description="SEO keywords")
+    style: str = Field("educational", description="Narration style: educational, storytelling, listicle, news")
+    duration: int = Field(60, ge=30, le=900, description="Target duration in seconds")
+    outline: List[str] = Field(default_factory=list, description="High-level outline sections")
+    script: str = Field("", description="Generated script text")
+    status: str = Field("generated", description="Status of the job")
